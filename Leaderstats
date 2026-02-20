@@ -1,0 +1,30 @@
+# The basics of a leaderstats script
+#-- Pretty much to be used in all games to track stuff to be displayed e.g. coins or distance travelled
+
+# For this instance used in a tag game tracking the tags a player made and the times a player won
+
+#----------------------------------------------------------------#
+-- Game service
+local Players = game:GetService("Players")
+
+local function playerSetup(player)
+  -- Creates the leaderstat folder and assigns it to the player
+	local leaderstats = Instance.new("Folder")
+	leaderstats.Name = "leaderstats"
+	leaderstats.Parent = player
+
+  -- Creating the values that are assigned in the folder 
+	local tags = Instance.new("IntValue")
+	tags.Name = "Tags"
+	tags.Value = 0
+	tags.Parent = leaderstats
+	
+	local wins = Instance.new("IntValue")
+	wins.Name = "Wins"
+	wins.Value = 0
+	wins.Parent = leaderstats
+end
+
+-- Runs everytime a player is added
+Players.PlayerAdded:Connect(playerSetup)
+#----------------------------------------------------------------#
