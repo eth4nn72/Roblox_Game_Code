@@ -1,0 +1,88 @@
+# A script which is used currently in my tag game to control the games states
+
+- Uses an attribute which is assigned to the player when they join. 
+- Its simple (and so far) effective at rotating the game through the available states.
+- Also has lines of code for teleporting the player.
+
+#------------------------------------------------------------------------------#
+-- getting the games states
+local players = game:GetService("Players")
+local replicatedStorage = game:GetService("ReplicatedStorage")
+local gameState = replicatedStorage:WaitForChild("gameState")
+local gameSpawn = workspace:WaitForChild("GameSpawn")
+local lobbySpawn = workspace:WaitForChild("LobbySpawn")
+
+-- Counts the players in the lobby to eventually check if enough have joined
+function countLobbyPlayers()
+	local count = 0
+  -- Basic for loop in Lua when iterating <-- when using this for loop the _ represents the iterator which isn't needed so is just set to _. 
+	for _, player in pairs(players:GetPlayers()) do
+    -- Counting if the player is currently in the lobby or not
+		if player:GetAttribute("State") == "Lobby" then
+			count += 1
+		end
+	end
+	return count
+end
+
+function endgame()
+  -- Changes the games state after the games finished
+	gameState.Value = "Intermission"
+  -- Sets all the states back to lobby to reset and then teleports all the players
+	for _, player in pairs(players:GetPlayers()) do
+		player:GetAttribute("State", "Lobby")
+    -- Easy way to teleport players is using the HumanoidRootPart CFrame
+		player.Character.HumanoidRootPart.CFrame = lobbySpawn.CFrame
+		player.CameraMode = Enum.CameraMode.Classic
+	end
+end
+
+function gameStart()
+	gameState.Value = "In Progress"
+	
+	for _, player in pairs(players:GetPlayers()) do
+		if player:GetAttribute("State") == "Lobby" then
+			-- Teleport player to gamespawn
+			player.Character.HumanoidRootPart.CFrame = gameSpawn.CFrame
+		end
+    -- Changing the state when the player is participating 
+		player:SetAttribute("State", "Game")
+		player.Character.Parent = workspace.Alive.Runners
+		-- Camera mode changed so the player is locked in first person - Can be changed between Classic and LockFirstPerson
+		player.CameraMode = Enum.CameraMode.LockFirstPerson
+		
+	end
+
+  -- Where some real working not-yet implemented game logic will go 
+	task.wait(10)
+	endgame()
+
+  -- Makes sure everyone is back in the lobby and has the correct state
+	for _, player in pairs(players:GetPlayers()) do
+		if player:GetAttribute("State") == "Game" then
+			player.Character.HumanoidRootPart.CFrame = lobbySpawn.CFrame
+			player:SetAttribute("State", "Lobby")
+		end
+	end
+	
+end
+-- Will be a main loop that checks the player count is greater than 2 (set to 1 for testing) and also that the game is not in progress
+while true do
+	task.wait(10)
+	print("Trying Loop")
+
+	print("Game State = " .. gameState.Value)
+	if gameState.Value == "Intermission" then
+		print("Counting Players")
+		local lobbyCount = countLobbyPlayers()
+		print("Lobby Count: " .. lobbyCount)
+
+		if lobbyCount >= 1 then
+			print("Starting Game")
+			gameStart()
+		end
+	end
+end
+#------------------------------------------------------------------------------#
+
+
